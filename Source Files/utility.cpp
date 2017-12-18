@@ -1896,7 +1896,6 @@ int cvCombineVecSamples(const char *infoName, const char *targetVecFileName,
     for (t = imageList.begin(); t != imageList.end(); t++)
     {
         currentImageName = (*t);
-
         //cv::Mat temp = cv::imread(currentImageName);
         //CvMat *b;
         //CvMat temp = a; //转化为CvMat类型，而不是复制数据
