@@ -22,6 +22,7 @@ include_directories(${OpenCV_INCLUDE_DIRS})
 
 
 add_executable(createsamples ${SOURCE_FILES})
+# add_executable(createsamples "Source Files/main.cpp")
 
 target_link_libraries(createsamples ${OpenCV_LIBS})
 # target_link_libraries(createsamples ${Boost_LIBRARIES})

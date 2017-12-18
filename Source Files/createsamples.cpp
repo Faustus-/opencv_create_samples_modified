@@ -50,6 +50,7 @@
 #include <cstdlib>
 #include <cmath>
 #include <ctime>
+#include <iostream>
 
 using namespace std;
 
@@ -211,6 +212,15 @@ int main( int argc, char* argv[] )
                                  num, invert, maxintensitydev,
                                  maxxangle, maxyangle, maxzangle,
                                  showsamples, width, height );
+
+
+        std::cout<<"******************"<<std::endl;
+        int n = cvCombineVecSamples( "/home/teradata/Workspace/CPP/createsamples/test/test",
+                             "/home/teradata/Workspace/CPP/createsamples/test/vec2",
+                             width, height, showsamples);
+
+        std::cout<<"*********"<<n<<"*********"<<std::endl;
+
 
         printf( "Done\n" );
     }

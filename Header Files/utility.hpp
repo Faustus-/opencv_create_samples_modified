@@ -121,4 +121,22 @@ int cvCreateTrainingSamplesFromInfo( const char* infoname, const char* vecfilena
  */
 void cvShowVecSamples( const char* filename, int winwidth, int winheight, double scale );
 
+
+/*
+ * cvCombineVecSamples
+ *
+ * combine multiple vec files and save images in vec as separate images
+ *
+ * infoname - file in which vec files are listed
+ * vecfilename - combined vec file.
+ * winwidth - image width
+ * winheight - image height
+ * scale whither - the scale each sample is adjusted to
+ * showsamples - if not 0 samples will be shown
+ */
+int cvCombineVecSamples( const char* infoname, const char* vecfilename, int winwidth, int winheight,
+                         int showsamples);
+
+
+
 #endif //__CREATESAMPLES_UTILITY_HPP__
