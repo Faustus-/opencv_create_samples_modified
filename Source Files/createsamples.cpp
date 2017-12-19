@@ -63,6 +63,8 @@ int main( int argc, char* argv[] )
     char* vecname    = NULL; /* .vec file name */
     char* infoname   = NULL; /* file name with marked up image descriptions */
     char* imagename  = NULL; /* single sample image */
+    char* vecinfo    = NULL; /* vector collection file name */
+    char* targetvec  = NULL; /* combined vector file name */
     char* bgfilename = NULL; /* background */
     int num = 1000;
     int bgcolor = 0;
@@ -86,6 +88,8 @@ int main( int argc, char* argv[] )
         printf( "Usage: %s\n  [-info <collection_file_name>]\n"
                 "  [-img <image_file_name>]\n"
                 "  [-vec <vec_file_name>]\n"
+                "  [-vecinfo <vector_collection_file_name>]\n"
+                "  [-targetvec <combined_vector_file_name>\n"
                 "  [-bg <background_file_name>]\n  [-num <number_of_samples = %d>]\n"
                 "  [-bgcolor <background_color = %d>]\n"
                 "  [-inv] [-randinv] [-bgthresh <background_color_threshold = %d>]\n"
@@ -115,6 +119,14 @@ int main( int argc, char* argv[] )
         else if( !strcmp( argv[i], "-vec" ) )
         {
             vecname = argv[++i];
+        }
+        else if( !strcmp( argv[i], "-vecinfo" ) )
+        {
+            vecinfo = argv[++i];
+        }
+        else if( !strcmp( argv[i], "-targetvec" ) )
+        {
+            targetvec = argv[++i];
         }
         else if( !strcmp( argv[i], "-bg" ) )
         {
@@ -212,16 +224,6 @@ int main( int argc, char* argv[] )
                                  num, invert, maxintensitydev,
                                  maxxangle, maxyangle, maxzangle,
                                  showsamples, width, height );
-
-
-        std::cout<<"******************"<<std::endl;
-        int n = cvCombineVecSamples( "/home/teradata/Workspace/CPP/createsamples/test/test",
-                             "/home/teradata/Workspace/CPP/createsamples/test/vec2",
-                             width, height, showsamples);
-
-        std::cout<<"*********"<<n<<"*********"<<std::endl;
-
-
         printf( "Done\n" );
     }
     else if( imagename && bgfilename && infoname )
@@ -256,6 +258,12 @@ int main( int argc, char* argv[] )
     else
     {
         printf( "Nothing to do\n" );
+    }
+    if ( vecinfo && targetvec )
+    {
+        printf( "Combine given vectors in the vecinfo \n" );
+        int n = cvCombineVecSamples( vecinfo, targetvec, width, height, showsamples);
+        printf( "Done. Combined %d samples\n", n );
     }
 
     return 0;

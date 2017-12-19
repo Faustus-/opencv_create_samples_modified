@@ -1211,7 +1211,6 @@ void icvDestroyBackgroundReaders()
     }
 }
 
-//TODO create training samples
 void cvCreateTrainingSamples(const char *filename,
                              const char *imgfilename, int bgcolor, int bgthreshold,
                              const char *bgfilename, int count,
@@ -1611,7 +1610,6 @@ int icvGetTraininDataFromVec(CvMat *img, void *userdata)
     return 1;
 }
 
-//TODO show vec samples
 void cvShowVecSamples(const char *filename, int winwidth, int winheight,
                       double scale)
 {
@@ -1692,7 +1690,6 @@ void cvShowVecSamples(const char *filename, int winwidth, int winheight,
     }
 }
 
-//TODO def
 int cvCombineVecSamples(const char *infoName, const char *targetVecFileName,
                         int winwidth = 24, int winheight = 24, int showsamples = 0)
 {
@@ -1864,7 +1861,7 @@ int cvCombineVecSamples(const char *infoName, const char *targetVecFileName,
                     //std::cout<<"check point"<<i<<std::endl;
                     char currentImgName[PATH_MAX];
                     snprintf(currentImgName, sizeof(currentImgName), "%s%s%d%s%d%s", targetVecFileName, "/", countVec,
-                             "_", i, ".jpg");
+                             "_", i, ".png");
                     //std::cout<<currentImgName<<std::endl;
                     cvSaveImage(currentImgName, scaledSample);
                     imageList.push_back(currentImgName);
@@ -1913,3 +1910,161 @@ int cvCombineVecSamples(const char *infoName, const char *targetVecFileName,
     std::cout<<"vec wrote"<<std::endl;
     return total;
 }
+
+
+//TODO vec to images
+int vecToImage(const char *infoName, const char *targetImgDir,
+               int winwidth = 24, int winheight = 24, int showsamples = 0)
+{
+    // check input
+    assert(infoName != nullptr);
+    assert(targetImgDir != nullptr);
+
+    // initialize image counter.
+    int total;
+    total = 0;
+
+    // load info file
+    std::ifstream info(infoName);
+    if (!info)
+    {
+#if CV_VERBOSE
+        fprintf(stderr, "Unable to open file: %s\n", infoName);
+#endif /* CV_VERBOSE */
+        info.close();
+        return total;
+    }
+
+    char fullTargetVecFileName[PATH_MAX];
+    snprintf(fullTargetVecFileName, sizeof(fullTargetVecFileName), "%s%s", targetImgDir, "/");
+    if (!icvMkDir(fullTargetVecFileName))
+    {
+#if CV_VERBOSE
+        fprintf(stderr, "Unable to create directory hierarchy: %s\n", fullTargetVecFileName);
+#endif /* CV_VERBOSE */
+        return total;
+    }
+
+    // recursively load images from vec files listed in the info file and save them as png
+    std::string currentVecName;
+    // vec counter
+    int countVec;
+    countVec = 0;
+    // current vec file
+    CvVecFile currentVecFile;
+    // a tmp variable to check vec file
+    short tmp;
+    // local image counter
+    int i;
+    // sample image
+    CvMat *sampleImage;
+    // guessed width and height
+    int guessed_w;
+    int guessed_h;
+    // scaled tag
+    bool scaled;
+    while (getline(info, currentVecName))
+    {
+        std::cout << "load vec: " << currentVecName << std::endl;
+        tmp = 0;
+        guessed_w = 0;
+        guessed_h = 0;
+        scaled = false;
+        // load and check vec file
+        currentVecFile.input = fopen(currentVecName.c_str(), "rb");
+        if (currentVecFile.input != nullptr)
+        {
+            size_t elements_read1 = fread(&currentVecFile.count, sizeof(currentVecFile.count), 1, currentVecFile.input);
+            size_t elements_read2 = fread(&currentVecFile.vecsize, sizeof(currentVecFile.vecsize), 1,
+                                          currentVecFile.input);
+            size_t elements_read3 = fread(&tmp, sizeof(tmp), 1, currentVecFile.input);
+            size_t elements_read4 = fread(&tmp, sizeof(tmp), 1, currentVecFile.input);
+            CV_Assert(elements_read1 == 1 && elements_read2 == 1 && elements_read3 == 1 && elements_read4 == 1);
+            if (currentVecFile.vecsize != winwidth * winheight)
+            {
+                fprintf(stderr, "Warning: specified sample width=%d and height=%d "
+                                "does not correspond to .vec file vector size=%d.\n",
+                        winwidth, winheight, currentVecFile.vecsize);
+                if (currentVecFile.vecsize > 0)
+                {
+                    guessed_w = cvFloor(sqrt((float) currentVecFile.vecsize));
+                    if (guessed_w > 0)
+                    {
+                        guessed_h = currentVecFile.vecsize / guessed_w;
+                    }
+                }
+
+                if (guessed_w <= 0 || guessed_h <= 0 || guessed_w * guessed_h != currentVecFile.vecsize)
+                {
+                    fprintf(stderr, "Error: failed to guess sample width and height\n");
+                    fclose(currentVecFile.input);
+                    continue;
+                } else
+                {
+                    //winwidth = guessed_w;
+                    //winheight = guessed_h;
+                    scaled = true;
+                    fprintf(stderr, "Guessed width=%d, guessed height=%d\n. images will be resized to the given size",
+                            winwidth, winheight);
+                }
+            }
+            std::cout << "vec file opened" << std::endl;
+            // load images recursively
+            if (!feof(currentVecFile.input))
+            {
+                CvMat *scaledSample = nullptr;
+                currentVecFile.last = 0;
+                currentVecFile.vector = (short *) cvAlloc(sizeof(*currentVecFile.vector) * currentVecFile.vecsize);
+                if (!scaled)
+                {
+                    sampleImage = scaledSample = cvCreateMat(winheight, winwidth, CV_8UC1);
+                } else
+                {
+                    sampleImage = cvCreateMat(guessed_h, guessed_w, CV_8UC1);
+                    scaledSample = cvCreateMat(MAX(1, cvCeil(winheight)),
+                                               MAX(1, cvCeil(winwidth)),
+                                               CV_8UC1);
+                }
+                if (showsamples)
+                {
+                    cvNamedWindow("Sample", CV_WINDOW_AUTOSIZE);
+                }
+                for (i = 0; i < currentVecFile.count; i++)
+                {
+                    icvGetTraininDataFromVec(sampleImage, &currentVecFile);
+                    if (scaled) cvResize(sampleImage, scaledSample, CV_INTER_LINEAR);
+                    if (showsamples)
+                    {
+                        cvShowImage("Sample", scaledSample);
+                        if ((cvWaitKey(0) & 0xFF) == 27) break;
+                    }
+                    //std::cout<<"check point"<<i<<std::endl;
+                    char currentImgName[PATH_MAX];
+                    snprintf(currentImgName, sizeof(currentImgName), "%s%s%d%s%d%s", targetImgDir, "/", countVec,
+                             "_", i, ".png");
+                    //std::cout<<currentImgName<<std::endl;
+                    cvSaveImage(currentImgName, scaledSample);
+                    i++;
+                    total++;
+                }
+                if (scaledSample && scaledSample != sampleImage) cvReleaseMat(&scaledSample);
+                //cvReleaseMat( &sampleImage );
+                cvFree(&currentVecFile.vector);
+            }
+            fclose(currentVecFile.input);
+            countVec++;
+        }
+        cvReleaseMat(&sampleImage);
+    }
+    info.close();
+    return total;
+}
+/*
+int cvBatchGenerate()
+{
+    int vecCount;
+    vecCount = 0;
+
+    return vecCount;
+}
+*/
