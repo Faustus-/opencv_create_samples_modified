@@ -89,7 +89,7 @@ int main( int argc, char* argv[] )
                 "  [-img <image_file_name>]\n"
                 "  [-vec <vec_file_name>]\n"
                 "  [-vecinfo <vector_collection_file_name>]\n"
-                "  [-targetvec <combined_vector_file_name>\n"
+                "  [-targetvec <combined_vector_file_name>]\n"
                 "  [-bg <background_file_name>]\n  [-num <number_of_samples = %d>]\n"
                 "  [-bgcolor <background_color = %d>]\n"
                 "  [-inv] [-randinv] [-bgthresh <background_color_threshold = %d>]\n"

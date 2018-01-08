@@ -1865,7 +1865,6 @@ int cvCombineVecSamples(const char *infoName, const char *targetVecFileName,
                     //std::cout<<currentImgName<<std::endl;
                     cvSaveImage(currentImgName, scaledSample);
                     imageList.push_back(currentImgName);
-                    i++;
                     total++;
                 }
                 if (scaledSample && scaledSample != sampleImage) cvReleaseMat(&scaledSample);
@@ -2057,6 +2056,78 @@ int vecToImage(const char *infoName, const char *targetImgDir,
         cvReleaseMat(&sampleImage);
     }
     info.close();
+    return total;
+}
+
+//TODO image to vectors
+int imageToVec(const char *imgDir, const char *targetVecFileName,
+               int winwidth = 24, int winheight = 24, int showsamples = 0)
+{
+    // check input
+    assert(imgDir != NULL);
+    assert(targetVecFileName != NULL);
+
+    // initialize image counter.
+    int total;
+    total = 0;
+
+    // initialize target vec file.
+    FILE *targetVecFile;
+    // create a file
+    //std::cout << "Check 0" << std::endl;
+    if (!icvMkDir(targetVecFileName))
+    {
+#if CV_VERBOSE
+        fprintf(stderr, "Unable to create directory hierarchy: %s\n", targetVecFileName);
+#endif /* CV_VERBOSE */
+        return total;
+    }
+
+    // load target vec file
+    targetVecFile = fopen(targetVecFileName, "wb");
+    if (targetVecFile == NULL)
+    {
+#if CV_VERBOSE
+        fprintf(stderr, "Unable to open file: %s\n", targetVecFileName);
+#endif /* CV_VERBOSE */
+        fclose(targetVecFile);
+        return total;
+    }
+
+    //std::cout << "Check 2" << std::endl;
+    // recursively load images and save them in a vec file
+
+    CvMat *sampleImage;
+    // image list
+    std::vector<std::string> imageList;
+    std::cout<<"write vec file"<<std::endl;
+    // write vec file header
+    icvWriteVecHeader(targetVecFile, total, winwidth, winheight);
+    std::cout<<"head wrote"<<std::endl;
+    // load all images and combine them in one vec file
+    std::vector<std::string>::iterator t;
+    std::string currentImageName;
+    CvMat* currentImage;
+    currentImage = cvCreateMat(winheight, winwidth, CV_8UC1);
+    int c = 0;
+    for (t = imageList.begin(); t != imageList.end(); t++)
+    {
+        currentImageName = (*t);
+        //cv::Mat temp = cv::imread(currentImageName);
+        //CvMat *b;
+        //CvMat temp = a; //转化为CvMat类型，而不是复制数据
+        //cvCopy(&temp, b); //真正复制数据 cvCopy使用前要先开辟内存空间
+        cvConvert(cvLoadImage(currentImageName.c_str(), CV_LOAD_IMAGE_GRAYSCALE), currentImage);
+        //cvLoadImage(currentImageName.c_str());
+        std::cout << c << " ";
+        icvWriteVecSample(targetVecFile, currentImage);
+        //cvFree(&(currentImage.data.ptr));
+        c++;
+    }
+    cvReleaseMat(&currentImage);
+    std::cout<<std::endl;
+    fclose(targetVecFile);
+    std::cout<<"vec wrote"<<std::endl;
     return total;
 }
 /*

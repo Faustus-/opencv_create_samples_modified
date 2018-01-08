@@ -26,3 +26,11 @@ add_executable(createsamples ${SOURCE_FILES})
 
 target_link_libraries(createsamples ${OpenCV_LIBS})
 # target_link_libraries(createsamples ${Boost_LIBRARIES})
+
+
+# file(GLOB_RECURSE src_files
+#         "Source Files/main.cpp"
+#         "Source Files/contourLocate.cpp"
+#         "Source Files/ContourAdjTextLocateMain.cpp"
+#         "Source Files/textLocate.cpp"
+#         )
